@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Simple JS Calculator</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 300px;
+        margin: 2rem auto;
+        padding: 1rem;
+        background: #f3f4f6;
+        border-radius: 8px;
+        box-shadow: 0 0 8px #ccc;
+      }
+      #display {
+        background: white;
+        font-size: 2rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-radius: 4px;
+        text-align: right;
+        min-height: 2.5rem;
+        overflow-x: auto;
+        user-select: none;
+      }
+      #buttons {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.5rem;
+      }
+      button {
+        padding: 1rem;
+        font-size: 1.25rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        background: #2563eb;
+        color: white;
+        user-select: none;
+        transition: background 0.2s;
+      }
+      button:hover {
+        background: #1d4ed8;
+      }
+      button.operation {
+        background: #f97316;
+      }
+      button.operation:hover {
+        background: #c2410c;
+      }
+      button.zero {
+        grid-column: span 2;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="display">0</div>
+    <div id="buttons"></div>
+
+    <script>
+      const buttonsContainer = document.getElementById("buttons");
+      const display = document.getElementById("display");
+
+      // Define calculator buttons
+      const buttons = [
+        "7",
+        "8",
+        "9",
+        "÷",
+        "4",
+        "5",
+        "6",
+        "×",
+        "1",
+        "2",
+        "3",
+        "-",
+        "0",
+        ".",
+        "=",
+        "+",
+        "C",
+      ];
+
+      let currentInput = "";
+      let lastResult = null;
+
+      // Arrow function to render buttons dynamically
+      const renderButtons = () => {
+        buttonsContainer.innerHTML = "";
+        buttons.forEach((btn) => {
+          const buttonEl = document.createElement("button");
+          buttonEl.textContent = btn;
+          // Add special classes for styling
+          if ("÷×-+=C".includes(btn)) buttonEl.classList.add("operation");
+          if (btn === "0") buttonEl.classList.add("zero");
+          buttonsContainer.appendChild(buttonEl);
+
+          // Attach click event
+          buttonEl.addEventListener("click", () => handleButtonClick(btn));
+        });
+      };
+
+      // Arrow function to update the display
+      const updateDisplay = (text) => {
+        display.textContent = text || "0";
+      };
+
+      // Arrow function to perform calculation safely
+      const calculateResult = () => {
+        // Replace special characters with JS operators
+        let expression = currentInput.replace(/÷/g, "/").replace(/×/g, "*");
+
+        try {
+          // Use Function constructor instead of eval (safer)
+          const result = Function('"use strict";return (' + expression + ")")();
+          return result;
+        } catch {
+          return "Error";
+        }
+      };
+
+      // Arrow function to handle button clicks
+      const handleButtonClick = (btn) => {
+        if (btn === "C") {
+          currentInput = "";
+          lastResult = null;
+          updateDisplay(currentInput);
+          return;
+        }
+
+        if (btn === "=") {
+          const result = calculateResult();
+          updateDisplay(result);
+          lastResult = result;
+          currentInput = result.toString();
+          return;
+        }
+
+        // Prevent invalid input, e.g. two operators in a row
+        const operators = ["+", "-", "×", "÷"];
+        const lastChar = currentInput.slice(-1);
+
+        if (operators.includes(btn)) {
+          if (currentInput === "" && btn !== "-") return; // Can't start with operator except minus
+          if (operators.includes(lastChar)) {
+            // Replace last operator with new one
+            currentInput = currentInput.slice(0, -1) + btn;
+            updateDisplay(currentInput);
+            return;
+          }
+        }
+
+        // Append number or operator
+        currentInput += btn;
+        updateDisplay(currentInput);
+      };
+
+      // Initial rendering
+      renderButtons();
+      updateDisplay("0");
+    </script>
+  </body>
+</html>
